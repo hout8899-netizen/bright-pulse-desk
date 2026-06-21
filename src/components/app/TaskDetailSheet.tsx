@@ -1,7 +1,7 @@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
-import { isOverdue, type Task } from "@/lib/mock-data";
+import { isOverdue, type Task, type TaskHistoryEntry } from "@/lib/mock-data";
 import { PriorityBadge, StatusBadge, OverdueBadge } from "./Badges";
 import { ProgressBar } from "./TaskTable";
 import { cn } from "@/lib/utils";
