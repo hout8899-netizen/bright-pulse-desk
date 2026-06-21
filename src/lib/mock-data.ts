@@ -1,6 +1,16 @@
 export type Priority = "High" | "Medium" | "Low";
 export type Status = "Completed" | "In Progress" | "Pending";
 
+export type HistoryField = "status" | "priority" | "notes" | "completion" | "created";
+
+export interface TaskHistoryEntry {
+  at: string; // ISO timestamp
+  field: HistoryField;
+  from?: string;
+  to?: string;
+  message?: string;
+}
+
 export interface Task {
   id: string;
   employee: string;
@@ -15,6 +25,7 @@ export interface Task {
   hours: number;
   manager: string;
   notes?: string;
+  history?: TaskHistoryEntry[];
 }
 
 export interface Project {

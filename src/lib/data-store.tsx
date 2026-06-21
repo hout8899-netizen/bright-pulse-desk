@@ -5,6 +5,7 @@ import {
   departments as initialDepartments,
   employees as initialEmployees,
   type Task,
+  type TaskHistoryEntry,
   type Project,
   type Department,
   type Employee,
@@ -45,9 +46,56 @@ export function DataProvider({ children }: { children: ReactNode }) {
       projects,
       departments,
       employees,
-      addTask: (t) => setTasks((prev) => [...prev, { ...t, id: nextId("T", prev) }]),
+      addTask: (t) =>
+        setTasks((prev) => {
+          const id = nextId("T", prev);
+          const now = new Date().toISOString();
+          const created: Task = {
+            ...t,
+            id,
+            history: [
+              ...(t.history ?? []),
+              { at: now, field: "created", message: `Task created and assigned to ${t.employee || "—"}` },
+            ],
+          };
+          return [...prev, created];
+        }),
       updateTask: (id, patch) =>
-        setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t))),
+        setTasks((prev) =>
+          prev.map((t) => {
+            if (t.id !== id) return t;
+            const now = new Date().toISOString();
+            const entries: TaskHistoryEntry[] = [];
+            if (patch.status !== undefined && patch.status !== t.status) {
+              entries.push({ at: now, field: "status", from: t.status, to: patch.status });
+            }
+            if (patch.priority !== undefined && patch.priority !== t.priority) {
+              entries.push({ at: now, field: "priority", from: t.priority, to: patch.priority });
+            }
+            if (patch.notes !== undefined && (patch.notes ?? "") !== (t.notes ?? "")) {
+              const wasEmpty = !(t.notes ?? "").trim();
+              const isEmpty = !(patch.notes ?? "").trim();
+              entries.push({
+                at: now,
+                field: "notes",
+                message: wasEmpty ? "Notes added" : isEmpty ? "Notes cleared" : "Notes updated",
+              });
+            }
+            if (patch.completion !== undefined && patch.completion !== t.completion) {
+              entries.push({
+                at: now,
+                field: "completion",
+                from: `${t.completion}%`,
+                to: `${patch.completion}%`,
+              });
+            }
+            return {
+              ...t,
+              ...patch,
+              history: entries.length ? [...(t.history ?? []), ...entries] : t.history,
+            };
+          }),
+        ),
       deleteTask: (id) => setTasks((prev) => prev.filter((t) => t.id !== id)),
       addProject: (p) => setProjects((prev) => [...prev, { ...p, id: nextId("P", prev) }]),
       updateProject: (id, patch) =>
