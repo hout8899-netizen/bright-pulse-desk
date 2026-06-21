@@ -5,6 +5,7 @@ import {
   departments as initialDepartments,
   employees as initialEmployees,
   type Task,
+  type TaskHistoryEntry,
   type Project,
   type Department,
   type Employee,
