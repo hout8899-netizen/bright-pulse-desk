@@ -39,6 +39,17 @@ function fmtDate(iso: string) {
   return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
+function fmtDateTime(iso: string) {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return iso;
+  return d.toLocaleString(undefined, {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
 function daysBetween(a: string, b: string) {
   const ms = new Date(b).getTime() - new Date(a).getTime();
   return Math.round(ms / 86400000);
@@ -52,50 +63,60 @@ interface EventEntry {
   tone: "neutral" | "info" | "success" | "warning" | "danger";
 }
 
+function entryToEvent(e: TaskHistoryEntry): EventEntry {
+  const date = fmtDateTime(e.at);
+  switch (e.field) {
+    case "created":
+      return { icon: PlusCircle, title: "Task created", date, note: e.message, tone: "neutral" };
+    case "status": {
+      const tone: EventEntry["tone"] =
+        e.to === "Completed" ? "success" : e.to === "In Progress" ? "info" : "neutral";
+      const icon = e.to === "Completed" ? CheckCircle2 : e.to === "In Progress" ? PlayCircle : Clock;
+      return { icon, title: `Status changed to ${e.to}`, date, note: e.from ? `From ${e.from}` : undefined, tone };
+    }
+    case "priority": {
+      const tone: EventEntry["tone"] =
+        e.to === "High" ? "danger" : e.to === "Medium" ? "warning" : "success";
+      return { icon: Flag, title: `Priority set to ${e.to}`, date, note: e.from ? `From ${e.from}` : undefined, tone };
+    }
+    case "completion":
+      return {
+        icon: TrendingUp,
+        title: `Progress updated to ${e.to}`,
+        date,
+        note: e.from ? `From ${e.from}` : undefined,
+        tone: "info",
+      };
+    case "notes":
+      return { icon: StickyNote, title: e.message ?? "Notes updated", date, tone: "info" };
+  }
+}
+
 function buildTimeline(task: Task): EventEntry[] {
   const today = new Date().toISOString().slice(0, 10);
-  const overdue = isOverdue(task);
+  const history = (task.history ?? []).slice().sort((a, b) => a.at.localeCompare(b.at));
   const events: EventEntry[] = [];
 
-  events.push({
-    icon: PlusCircle,
-    title: "Task created",
-    date: task.startDate,
-    note: `Assigned to ${task.employee} · Managed by ${task.manager || "—"}`,
-    tone: "neutral",
-  });
-
-  if (new Date(task.startDate) <= new Date(today)) {
+  if (history.length === 0) {
+    // Synthetic created event for pre-existing tasks with no recorded history
     events.push({
-      icon: PlayCircle,
-      title: "Work started",
-      date: task.startDate,
-      note: `Project: ${task.project} · Priority: ${task.priority}`,
-      tone: "info",
-    });
-  } else {
-    events.push({
-      icon: CalendarClock,
-      title: "Scheduled to start",
-      date: task.startDate,
+      icon: PlusCircle,
+      title: "Task created",
+      date: fmtDate(task.startDate),
+      note: `Assigned to ${task.employee} · Managed by ${task.manager || "—"}`,
       tone: "neutral",
     });
+  } else {
+    events.push(...history.map(entryToEvent));
   }
 
-  if (task.completion > 0 && task.completion < 100) {
-    events.push({
-      icon: TrendingUp,
-      title: `Progress updated to ${task.completion}%`,
-      note: `${task.hours}h logged so far`,
-      tone: "info",
-    });
-  }
-
+  // Always append current due/overdue context as the latest item
+  const overdue = isOverdue(task);
   if (task.status === "Completed" || task.completion >= 100) {
     events.push({
       icon: CheckCircle2,
       title: "Task completed",
-      date: task.dueDate,
+      date: fmtDate(task.dueDate),
       note: `Total hours: ${task.hours}h`,
       tone: "success",
     });
@@ -104,7 +125,7 @@ function buildTimeline(task: Task): EventEntry[] {
     events.push({
       icon: Hourglass,
       title: `Overdue by ${overdueBy} day${overdueBy === 1 ? "" : "s"}`,
-      date: task.dueDate,
+      date: fmtDate(task.dueDate),
       note: "Due date passed without completion",
       tone: "danger",
     });
@@ -112,8 +133,8 @@ function buildTimeline(task: Task): EventEntry[] {
     const daysLeft = daysBetween(today, task.dueDate);
     events.push({
       icon: CalendarCheck2,
-      title: daysLeft >= 0 ? `Due in ${daysLeft} day${daysLeft === 1 ? "" : "s"}` : "Due today",
-      date: task.dueDate,
+      title: daysLeft > 0 ? `Due in ${daysLeft} day${daysLeft === 1 ? "" : "s"}` : "Due today",
+      date: fmtDate(task.dueDate),
       tone: daysLeft <= 3 ? "warning" : "neutral",
     });
   }
