@@ -161,36 +161,16 @@ export function TaskTable({ defaultProject }: { defaultProject?: string }) {
 
       <TaskForm open={formOpen} onOpenChange={setFormOpen} task={editingTask} />
 
-      <Dialog open={!!viewTask} onOpenChange={(o) => !o && setViewTask(null)}>
-        <DialogContent className="sm:max-w-lg">
-          {viewTask && (
-            <>
-              <DialogHeader>
-                <DialogTitle>{viewTask.description}</DialogTitle>
-              </DialogHeader>
-              <div className="grid grid-cols-2 gap-3 text-sm">
-                <Info label="Task ID" value={viewTask.id} />
-                <Info label="Employee" value={viewTask.employee} />
-                <Info label="Department" value={viewTask.department} />
-                <Info label="Project" value={viewTask.project} />
-                <Info label="Priority" value={<PriorityBadge priority={viewTask.priority} />} />
-                <Info label="Status" value={<StatusBadge status={viewTask.status} />} />
-                <Info label="Start Date" value={viewTask.startDate} />
-                <Info label="Due Date" value={viewTask.dueDate} />
-                <Info label="Completion" value={`${viewTask.completion}%`} />
-                <Info label="Hours" value={`${viewTask.hours}h`} />
-                <Info label="Manager" value={viewTask.manager} />
-                {viewTask.notes && (
-                  <div className="col-span-2">
-                    <p className="text-xs font-medium uppercase text-muted-foreground">Notes</p>
-                    <p className="mt-1 text-sm">{viewTask.notes}</p>
-                  </div>
-                )}
-              </div>
-            </>
-          )}
-        </DialogContent>
-      </Dialog>
+      <TaskDetailSheet
+        task={viewTask}
+        open={!!viewTask}
+        onOpenChange={(o) => !o && setViewTask(null)}
+        onEdit={(t) => {
+          setViewTask(null);
+          setEditingTask(t);
+          setFormOpen(true);
+        }}
+      />
 
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
