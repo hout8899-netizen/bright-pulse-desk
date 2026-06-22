@@ -22,6 +22,9 @@ interface DataContextValue {
   addProject: (p: Omit<Project, "id">) => void;
   updateProject: (id: string, p: Partial<Project>) => void;
   deleteProject: (id: string) => void;
+  addDepartment: (d: Omit<Department, "id">) => void;
+  updateDepartment: (id: string, d: Partial<Department>) => void;
+  deleteDepartment: (id: string) => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
@@ -37,7 +40,7 @@ function nextId(prefix: string, items: { id: string }[]) {
 export function DataProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [departments] = useState<Department[]>(initialDepartments);
+  const [departments, setDepartments] = useState<Department[]>(initialDepartments);
   const [employees] = useState<Employee[]>(initialEmployees);
 
   const value = useMemo<DataContextValue>(
@@ -101,6 +104,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateProject: (id, patch) =>
         setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
       deleteProject: (id) => setProjects((prev) => prev.filter((p) => p.id !== id)),
+      addDepartment: (d) =>
+        setDepartments((prev) => [...prev, { ...d, id: nextId("D", prev) }]),
+      updateDepartment: (id, patch) =>
+        setDepartments((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d))),
+      deleteDepartment: (id) => setDepartments((prev) => prev.filter((d) => d.id !== id)),
     }),
     [tasks, projects, departments, employees],
   );
