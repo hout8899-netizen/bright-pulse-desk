@@ -1,11 +1,12 @@
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
+import { Button } from "@/components/ui/button";
 import { useData } from "@/lib/data-store";
 import type { Department } from "@/lib/mock-data";
 import { isOverdue } from "@/lib/mock-data";
 import { StatusBadge, PriorityBadge, OverdueBadge } from "./Badges";
 import { ProgressBar } from "./TaskTable";
-import { Building2, Users, FolderKanban, ListChecks, Clock, AlertTriangle, CheckCircle2, UserCog } from "lucide-react";
+import { Building2, Users, FolderKanban, ListChecks, Clock, AlertTriangle, CheckCircle2, UserCog, Pencil, Trash2 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
@@ -14,9 +15,11 @@ interface DepartmentDetailSheetProps {
   department: Department | null;
   open: boolean;
   onOpenChange: (o: boolean) => void;
+  onEdit?: (d: Department) => void;
+  onDelete?: (d: Department) => void;
 }
 
-export function DepartmentDetailSheet({ department, open, onOpenChange }: DepartmentDetailSheetProps) {
+export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, onDelete }: DepartmentDetailSheetProps) {
   const { employees, projects, tasks } = useData();
 
   const summary = useMemo(() => {
