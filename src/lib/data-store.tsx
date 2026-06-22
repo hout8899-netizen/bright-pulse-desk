@@ -40,7 +40,7 @@ function nextId(prefix: string, items: { id: string }[]) {
 export function DataProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
-  const [departments] = useState<Department[]>(initialDepartments);
+  const [departments, setDepartments] = useState<Department[]>(initialDepartments);
   const [employees] = useState<Employee[]>(initialEmployees);
 
   const value = useMemo<DataContextValue>(
