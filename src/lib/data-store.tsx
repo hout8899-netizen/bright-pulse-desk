@@ -104,6 +104,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateProject: (id, patch) =>
         setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p))),
       deleteProject: (id) => setProjects((prev) => prev.filter((p) => p.id !== id)),
+      addDepartment: (d) =>
+        setDepartments((prev) => [...prev, { ...d, id: nextId("D", prev) }]),
+      updateDepartment: (id, patch) =>
+        setDepartments((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d))),
+      deleteDepartment: (id) => setDepartments((prev) => prev.filter((d) => d.id !== id)),
     }),
     [tasks, projects, departments, employees],
   );
