@@ -53,6 +53,26 @@ export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, 
                     <UserCog className="h-3.5 w-3.5" /> Head: {department.head}
                   </SheetDescription>
                 </div>
+                {(onEdit || onDelete) && (
+                  <div className="flex shrink-0 items-center gap-1">
+                    {onEdit && (
+                      <Button variant="outline" size="sm" onClick={() => onEdit(department)}>
+                        <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
+                      </Button>
+                    )}
+                    {onDelete && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:bg-destructive/10 hover:text-destructive"
+                        onClick={() => onDelete(department)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        <span className="sr-only">Delete department</span>
+                      </Button>
+                    )}
+                  </div>
+                )}
               </div>
             </SheetHeader>
 
