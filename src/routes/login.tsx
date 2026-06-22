@@ -41,6 +41,7 @@ function LoginPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
+      signIn(email);
       toast.success("Welcome back!", { description: email });
       navigate({ to: "/" });
     }, 700);
