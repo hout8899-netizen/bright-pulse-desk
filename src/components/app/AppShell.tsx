@@ -83,6 +83,25 @@ export function AppShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="ml-1 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/85 hover:bg-white/10">
+                <UserCircle2 className="h-6 w-6" />
+                <span className="hidden max-w-[140px] truncate sm:inline">
+                  {session?.email ?? "Account"}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="truncate">
+                {session?.email ?? "Not signed in"}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+                <LogOut className="mr-2 h-4 w-4" /> Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         {open && (
           <nav className="border-t border-white/10 bg-navy lg:hidden">
