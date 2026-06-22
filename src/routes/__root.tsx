@@ -3,6 +3,7 @@ import {
   Outlet,
   createRootRouteWithContext,
   useRouter,
+  useRouterState,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -12,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { DataProvider } from "../lib/data-store";
 import { Toaster } from "../components/ui/sonner";
+import { useSession } from "../lib/auth";
 
 function NotFoundComponent() {
   return (
@@ -107,13 +109,32 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+function AuthGate({ children }: { children: ReactNode }) {
+  const session = useSession();
+  const router = useRouter();
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+  useEffect(() => {
+    if (!session && pathname !== "/login") {
+      router.navigate({ to: "/login", replace: true });
+    } else if (session && pathname === "/login") {
+      router.navigate({ to: "/", replace: true });
+    }
+  }, [session, pathname, router]);
+
+  if (!session && pathname !== "/login") return null;
+  return <>{children}</>;
+}
+
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
 
   return (
     <QueryClientProvider client={queryClient}>
       <DataProvider>
-        <Outlet />
+        <AuthGate>
+          <Outlet />
+        </AuthGate>
         <Toaster />
       </DataProvider>
     </QueryClientProvider>

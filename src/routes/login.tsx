@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { signIn } from "@/lib/auth";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
@@ -40,6 +41,7 @@ function LoginPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
+      signIn(email);
       toast.success("Welcome back!", { description: email });
       navigate({ to: "/" });
     }, 700);

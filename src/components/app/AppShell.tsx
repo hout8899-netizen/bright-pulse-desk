@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import {
   LayoutDashboard,
   ListChecks,
@@ -7,9 +7,21 @@ import {
   Users,
   Menu,
   X,
+  LogOut,
+  UserCircle2,
 } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { toast } from "sonner";
 import { cn } from "@/lib/utils";
+import { signOut, useSession } from "@/lib/auth";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -22,6 +34,14 @@ const nav = [
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const session = useSession();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    signOut();
+    toast.success("Signed out");
+    router.navigate({ to: "/login", replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -63,6 +83,25 @@ export function AppShell({ children }: { children: ReactNode }) {
               );
             })}
           </nav>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="ml-1 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/85 hover:bg-white/10">
+                <UserCircle2 className="h-6 w-6" />
+                <span className="hidden max-w-[140px] truncate sm:inline">
+                  {session?.email ?? "Account"}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56">
+              <DropdownMenuLabel className="truncate">
+                {session?.email ?? "Not signed in"}
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
+                <LogOut className="mr-2 h-4 w-4" /> Log out
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
         {open && (
           <nav className="border-t border-white/10 bg-navy lg:hidden">
