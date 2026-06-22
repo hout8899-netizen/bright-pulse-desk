@@ -22,6 +22,9 @@ interface DataContextValue {
   addProject: (p: Omit<Project, "id">) => void;
   updateProject: (id: string, p: Partial<Project>) => void;
   deleteProject: (id: string) => void;
+  addDepartment: (d: Omit<Department, "id">) => void;
+  updateDepartment: (id: string, d: Partial<Department>) => void;
+  deleteDepartment: (id: string) => void;
 }
 
 const DataContext = createContext<DataContextValue | null>(null);
