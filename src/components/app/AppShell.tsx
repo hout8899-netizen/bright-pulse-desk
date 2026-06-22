@@ -34,6 +34,14 @@ const nav = [
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const pathname = useRouterState({ select: (s) => s.location.pathname });
+  const session = useSession();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    signOut();
+    toast.success("Signed out");
+    router.navigate({ to: "/login", replace: true });
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground">
