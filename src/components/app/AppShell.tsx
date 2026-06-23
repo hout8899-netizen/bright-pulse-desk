@@ -38,13 +38,25 @@ export function AppShell({ children }: { children: ReactNode }) {
   const router = useRouter();
 
   const handleLogout = () => {
-    signOut();
-    toast.success("Signed out");
-    router.navigate({ to: "/login", replace: true });
-    // Hard reload to guarantee in-memory state is wiped
-    if (typeof window !== "undefined") {
-      setTimeout(() => window.location.replace("/login"), 50);
+    const report = signOut();
+    const total = report.removedLocal.length + report.removedSession.length;
+    console.info("[logout] cleared", report);
+
+    if (report.ok) {
+      toast.success("Signed out", {
+        description: `Cleared ${report.removedLocal.length} local + ${report.removedSession.length} session item(s). Redirecting…`,
+      });
+    } else {
+      toast.error("Signed out with warnings", {
+        description: `Some items could not be cleared: ${report.remaining.join(", ") || "unknown"}`,
+      });
     }
+
+    router.navigate({ to: "/login", replace: true });
+    if (typeof window !== "undefined") {
+      setTimeout(() => window.location.replace("/login"), 80);
+    }
+    void total;
   };
 
   return (
