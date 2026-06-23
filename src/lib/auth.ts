@@ -5,12 +5,20 @@ const EVT = "tpt-auth-change";
 
 export type Session = { email: string; loggedInAt: string } | null;
 
+let cachedRaw: string | null = null;
+let cachedSession: Session = null;
+
 function read(): Session {
   if (typeof window === "undefined") return null;
   try {
     const raw = window.localStorage.getItem(KEY);
-    return raw ? (JSON.parse(raw) as Session) : null;
+    if (raw === cachedRaw) return cachedSession;
+    cachedRaw = raw;
+    cachedSession = raw ? (JSON.parse(raw) as Session) : null;
+    return cachedSession;
   } catch {
+    cachedRaw = null;
+    cachedSession = null;
     return null;
   }
 }
