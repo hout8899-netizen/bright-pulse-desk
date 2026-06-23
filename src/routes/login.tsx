@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
-import { Lock, Mail, Eye, EyeOff, LogIn, CheckCircle2 } from "lucide-react";
+import { Lock, Mail, Eye, EyeOff, LogIn, CheckCircle2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { signIn } from "@/lib/auth";
+
+const DEMO_EMAIL = "demo@tracker.app";
+const DEMO_PASSWORD = "demo1234";
 
 export const Route = createFileRoute("/login")({
   head: () => ({
