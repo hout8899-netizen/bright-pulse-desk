@@ -21,21 +21,63 @@ export function signIn(email: string) {
   window.dispatchEvent(new Event(EVT));
 }
 
-export function signOut() {
+export type SignOutReport = {
+  ok: boolean;
+  removedLocal: string[];
+  removedSession: string[];
+  remaining: string[];
+};
+
+function isAuthKey(k: string) {
+  const lk = k.toLowerCase();
+  return k.startsWith("tpt.") || lk.includes("token") || lk.includes("auth") || lk.includes("session");
+}
+
+export function signOut(): SignOutReport {
+  const report: SignOutReport = { ok: true, removedLocal: [], removedSession: [], remaining: [] };
   try {
-    window.localStorage.removeItem(KEY);
-    // Clear any other auth-related keys (tokens, remember-me, etc.)
-    for (let i = window.localStorage.length - 1; i >= 0; i--) {
+    // Snapshot localStorage keys to remove
+    const localKeys: string[] = [];
+    for (let i = 0; i < window.localStorage.length; i++) {
       const k = window.localStorage.key(i);
-      if (k && (k.startsWith("tpt.") || k.toLowerCase().includes("token") || k.toLowerCase().includes("auth"))) {
-        window.localStorage.removeItem(k);
-      }
+      if (k && (k === KEY || isAuthKey(k))) localKeys.push(k);
+    }
+    localKeys.forEach((k) => {
+      window.localStorage.removeItem(k);
+      report.removedLocal.push(k);
+    });
+
+    // Snapshot sessionStorage keys then clear
+    for (let i = 0; i < window.sessionStorage.length; i++) {
+      const k = window.sessionStorage.key(i);
+      if (k) report.removedSession.push(k);
     }
     window.sessionStorage.clear();
-  } catch {
-    // ignore storage errors
+
+    // Clear non-HttpOnly cookies on this origin
+    document.cookie.split(";").forEach((c) => {
+      const name = c.split("=")[0]?.trim();
+      if (name) document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+    });
+
+    // Verify nothing auth-related remains
+    for (let i = 0; i < window.localStorage.length; i++) {
+      const k = window.localStorage.key(i);
+      if (k && (k === KEY || isAuthKey(k))) report.remaining.push(`local:${k}`);
+    }
+    for (let i = 0; i < window.sessionStorage.length; i++) {
+      const k = window.sessionStorage.key(i);
+      if (k) report.remaining.push(`session:${k}`);
+    }
+    report.ok = report.remaining.length === 0;
+  } catch (e) {
+    report.ok = false;
+    console.error("[auth] signOut error", e);
   }
+
+  console.info("[auth] signOut report", report);
   window.dispatchEvent(new Event(EVT));
+  return report;
 }
 
 function subscribe(cb: () => void) {
