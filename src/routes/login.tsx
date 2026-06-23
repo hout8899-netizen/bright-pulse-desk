@@ -85,9 +85,36 @@ function LoginPage() {
       {/* Form panel */}
       <div className="flex items-center justify-center p-6 sm:p-12">
         <div className="w-full max-w-md">
-          <div className="mb-8">
+          <div className="mb-6">
             <h2 className="text-2xl font-bold text-slate-900">Sign in to your account</h2>
             <p className="mt-1 text-sm text-slate-500">Enter your credentials to continue.</p>
+          </div>
+
+          <div className="mb-6 rounded-lg border border-indigo-200 bg-indigo-50/70 p-3">
+            <div className="flex items-start gap-2">
+              <Sparkles className="mt-0.5 h-4 w-4 text-indigo-600" />
+              <div className="flex-1 text-xs text-slate-700">
+                <div className="font-semibold text-indigo-900">Demo account</div>
+                <div className="mt-1 font-mono text-[11px]">
+                  <div>Email: <span className="text-slate-900">{DEMO_EMAIL}</span></div>
+                  <div>Password: <span className="text-slate-900">{DEMO_PASSWORD}</span></div>
+                </div>
+              </div>
+              <Button
+                type="button"
+                size="sm"
+                variant="outline"
+                className="h-7 border-indigo-300 text-indigo-700 hover:bg-indigo-100"
+                onClick={() => {
+                  setEmail(DEMO_EMAIL);
+                  setPassword(DEMO_PASSWORD);
+                  setErrors({});
+                  toast.info("Demo credentials filled");
+                }}
+              >
+                Use
+              </Button>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5" noValidate>
