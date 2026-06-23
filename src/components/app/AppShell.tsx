@@ -41,6 +41,10 @@ export function AppShell({ children }: { children: ReactNode }) {
     signOut();
     toast.success("Signed out");
     router.navigate({ to: "/login", replace: true });
+    // Hard reload to guarantee in-memory state is wiped
+    if (typeof window !== "undefined") {
+      setTimeout(() => window.location.replace("/login"), 50);
+    }
   };
 
   return (
