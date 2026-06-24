@@ -9,11 +9,14 @@ import {
   X,
   LogOut,
   UserCircle2,
+  ShieldCheck,
+  Crown,
 } from "lucide-react";
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { signOut, useSession } from "@/lib/auth";
+import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,13 +26,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const nav = [
+type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean };
+
+const nav: NavItem[] = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
   { to: "/tasks", label: "Tasks", icon: ListChecks },
   { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/departments", label: "Departments", icon: Building2 },
   { to: "/employees", label: "Employees", icon: Users },
-] as const;
+  { to: "/users", label: "Users", icon: ShieldCheck, adminOnly: true },
+];
 
 export function AppShell({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
