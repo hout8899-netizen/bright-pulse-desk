@@ -12,9 +12,12 @@ export type Role = "admin" | "member";
 export type ManagedUser = {
   email: string;
   role: Role;
+  password: string;
   createdAt: string;
   lastLoginAt?: string;
 };
+
+export const DEMO_ADMIN_PASSWORD = "demo1234";
 
 export type Session = {
   email: string;
@@ -71,25 +74,31 @@ function ensureSeed(): ManagedUser[] {
   const users = readUsersRaw();
   if (users.length === 0) {
     const seeded: ManagedUser[] = [
-      { email: DEMO_ADMIN_EMAIL, role: "admin", createdAt: new Date().toISOString() },
+      { email: DEMO_ADMIN_EMAIL, role: "admin", password: DEMO_ADMIN_PASSWORD, createdAt: new Date().toISOString() },
     ];
     writeUsers(seeded);
     return seeded;
   }
-  // Make sure demo is always admin
+  // Make sure demo is always admin & has password
   const demo = users.find((u) => u.email === DEMO_ADMIN_EMAIL);
   if (!demo) {
-    const next = [
+    const next: ManagedUser[] = [
       ...users,
-      { email: DEMO_ADMIN_EMAIL, role: "admin" as Role, createdAt: new Date().toISOString() },
+      { email: DEMO_ADMIN_EMAIL, role: "admin", password: DEMO_ADMIN_PASSWORD, createdAt: new Date().toISOString() },
     ];
     writeUsers(next);
     return next;
   }
-  if (demo.role !== "admin") {
-    const next = users.map((u) => (u.email === DEMO_ADMIN_EMAIL ? { ...u, role: "admin" as Role } : u));
-    writeUsers(next);
-    return next;
+  let changed = false;
+  const normalized = users.map((u) => {
+    let n = u;
+    if (u.email === DEMO_ADMIN_EMAIL && u.role !== "admin") { n = { ...n, role: "admin" as Role }; changed = true; }
+    if (!n.password) { n = { ...n, password: u.email === DEMO_ADMIN_EMAIL ? DEMO_ADMIN_PASSWORD : "changeme" }; changed = true; }
+    return n;
+  });
+  if (changed) {
+    writeUsers(normalized);
+    return normalized;
   }
   return users;
 }
@@ -102,24 +111,36 @@ export function getUserByEmail(email: string): ManagedUser | undefined {
   return ensureSeed().find((u) => u.email.toLowerCase() === email.toLowerCase());
 }
 
-export function upsertUser(email: string, role: Role = "member"): ManagedUser {
+export function upsertUser(email: string, role: Role = "member", password?: string): ManagedUser {
   const users = ensureSeed();
   const existing = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
   if (existing) {
     const next = users.map((u) =>
-      u === existing ? { ...u, lastLoginAt: new Date().toISOString() } : u,
+      u === existing
+        ? { ...u, lastLoginAt: new Date().toISOString(), ...(password ? { password } : {}) }
+        : u,
     );
     writeUsers(next);
     return next.find((u) => u.email === existing.email)!;
   }
+  if (!password) throw new Error("Password is required for new users");
   const created: ManagedUser = {
     email,
     role,
+    password,
     createdAt: new Date().toISOString(),
     lastLoginAt: new Date().toISOString(),
   };
   writeUsers([...users, created]);
   return created;
+}
+
+export function setUserPassword(email: string, password: string) {
+  const users = ensureSeed();
+  const next = users.map((u) =>
+    u.email.toLowerCase() === email.toLowerCase() ? { ...u, password } : u,
+  );
+  writeUsers(next);
 }
 
 export function setUserRole(email: string, role: Role) {
@@ -158,9 +179,20 @@ export function removeUser(email: string) {
 }
 
 // ---------- Sign-in / sign-out ----------
-export function signIn(email: string) {
+export function signIn(email: string, password?: string) {
   ensureSeed();
-  const user = upsertUser(email, email === DEMO_ADMIN_EMAIL ? "admin" : "member");
+  const existing = getUserByEmail(email);
+  if (existing) {
+    if (password !== undefined && existing.password !== password) {
+      throw new Error("Invalid email or password");
+    }
+    upsertUser(email, existing.role); // updates lastLoginAt
+  } else {
+    // No registered user — sign-in must fail unless caller is in self-signup mode (password provided)
+    if (!password) throw new Error("Account not found");
+    upsertUser(email, email === DEMO_ADMIN_EMAIL ? "admin" : "member", password);
+  }
+  const user = getUserByEmail(email)!;
   const session: Session = {
     email: user.email,
     role: user.role,
@@ -169,6 +201,7 @@ export function signIn(email: string) {
   window.localStorage.setItem(KEY, JSON.stringify(session));
   window.dispatchEvent(new Event(EVT));
 }
+
 
 export type SignOutReport = {
   ok: boolean;

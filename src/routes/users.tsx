@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Shield, ShieldCheck, UserPlus, Trash2, Search, Crown, User as UserIcon } from "lucide-react";
+import { Shield, ShieldCheck, UserPlus, Trash2, Search, Crown, User as UserIcon, Eye, EyeOff, RefreshCw, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app/AppShell";
@@ -72,6 +72,8 @@ function UsersPage() {
   const [openInvite, setOpenInvite] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<Role>("member");
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPw, setShowNewPw] = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -81,17 +83,37 @@ function UsersPage() {
 
   const adminCount = users.filter((u) => u.role === "admin").length;
 
+  const genPassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    let out = "";
+    for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    setNewPassword(out);
+    setShowNewPw(true);
+  };
+
   const handleInvite = () => {
     const email = newEmail.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast.error("Enter a valid email");
       return;
     }
-    upsertUser(email, newRole);
-    toast.success("User added", { description: `${email} • ${newRole}` });
-    setNewEmail("");
-    setNewRole("member");
-    setOpenInvite(false);
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    try {
+      upsertUser(email, newRole, newPassword);
+      toast.success("User added", { description: `${email} • ${newRole}` });
+      setNewEmail("");
+      setNewRole("member");
+      setNewPassword("");
+      setShowNewPw(false);
+      setOpenInvite(false);
+    } catch (e) {
+      toast.error("Failed to add user", {
+        description: e instanceof Error ? e.message : "Unknown error",
+      });
+    }
   };
 
   const handleRoleChange = (email: string, role: Role) => {
@@ -166,6 +188,54 @@ function UsersPage() {
                     <SelectItem value="admin">Admin — full access &amp; user management</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="invite-password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={genPassword}
+                    className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                  >
+                    <RefreshCw className="h-3 w-3" /> Generate
+                  </button>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="invite-password"
+                    type={showNewPw ? "text" : "password"}
+                    placeholder="At least 6 characters"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="pr-20"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    {newPassword && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(newPassword);
+                          toast.success("Password copied");
+                        }}
+                        className="p-1 text-slate-400 hover:text-slate-600"
+                        aria-label="Copy password"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPw((v) => !v)}
+                      className="p-1 text-slate-400 hover:text-slate-600"
+                      aria-label={showNewPw ? "Hide password" : "Show password"}
+                    >
+                      {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Share this password securely with the user — they'll use it to sign in.
+                </p>
               </div>
             </div>
             <DialogFooter>

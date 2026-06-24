@@ -44,9 +44,15 @@ function LoginPage() {
     setLoading(true);
     setTimeout(() => {
       setLoading(false);
-      signIn(email);
-      toast.success("Welcome back!", { description: email });
-      navigate({ to: "/" });
+      try {
+        signIn(email, password);
+        toast.success("Welcome back!", { description: email });
+        navigate({ to: "/" });
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : "Sign-in failed";
+        setErrors({ password: msg });
+        toast.error("Sign-in failed", { description: msg });
+      }
     }, 700);
   };
 
