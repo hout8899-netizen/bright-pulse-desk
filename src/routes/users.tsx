@@ -189,6 +189,54 @@ function UsersPage() {
                   </SelectContent>
                 </Select>
               </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="invite-password">Password</Label>
+                  <button
+                    type="button"
+                    onClick={genPassword}
+                    className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
+                  >
+                    <RefreshCw className="h-3 w-3" /> Generate
+                  </button>
+                </div>
+                <div className="relative">
+                  <Input
+                    id="invite-password"
+                    type={showNewPw ? "text" : "password"}
+                    placeholder="At least 6 characters"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="pr-20"
+                  />
+                  <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                    {newPassword && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          navigator.clipboard?.writeText(newPassword);
+                          toast.success("Password copied");
+                        }}
+                        className="p-1 text-slate-400 hover:text-slate-600"
+                        aria-label="Copy password"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPw((v) => !v)}
+                      className="p-1 text-slate-400 hover:text-slate-600"
+                      aria-label={showNewPw ? "Hide password" : "Show password"}
+                    >
+                      {showNewPw ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <p className="text-[11px] text-slate-500">
+                  Share this password securely with the user — they'll use it to sign in.
+                </p>
+              </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setOpenInvite(false)}>Cancel</Button>
