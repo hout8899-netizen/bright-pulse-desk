@@ -12,9 +12,12 @@ export type Role = "admin" | "member";
 export type ManagedUser = {
   email: string;
   role: Role;
+  password: string;
   createdAt: string;
   lastLoginAt?: string;
 };
+
+export const DEMO_ADMIN_PASSWORD = "demo1234";
 
 export type Session = {
   email: string;
