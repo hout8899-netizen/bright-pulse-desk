@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { Shield, ShieldCheck, UserPlus, Trash2, Search, Crown, User as UserIcon } from "lucide-react";
+import { Shield, ShieldCheck, UserPlus, Trash2, Search, Crown, User as UserIcon, Eye, EyeOff, RefreshCw, Copy } from "lucide-react";
 import { toast } from "sonner";
 
 import { AppShell } from "@/components/app/AppShell";
