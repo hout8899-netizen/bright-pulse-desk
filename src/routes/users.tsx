@@ -72,6 +72,8 @@ function UsersPage() {
   const [openInvite, setOpenInvite] = useState(false);
   const [newEmail, setNewEmail] = useState("");
   const [newRole, setNewRole] = useState<Role>("member");
+  const [newPassword, setNewPassword] = useState("");
+  const [showNewPw, setShowNewPw] = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -81,17 +83,37 @@ function UsersPage() {
 
   const adminCount = users.filter((u) => u.role === "admin").length;
 
+  const genPassword = () => {
+    const chars = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789";
+    let out = "";
+    for (let i = 0; i < 10; i++) out += chars[Math.floor(Math.random() * chars.length)];
+    setNewPassword(out);
+    setShowNewPw(true);
+  };
+
   const handleInvite = () => {
     const email = newEmail.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       toast.error("Enter a valid email");
       return;
     }
-    upsertUser(email, newRole);
-    toast.success("User added", { description: `${email} • ${newRole}` });
-    setNewEmail("");
-    setNewRole("member");
-    setOpenInvite(false);
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters");
+      return;
+    }
+    try {
+      upsertUser(email, newRole, newPassword);
+      toast.success("User added", { description: `${email} • ${newRole}` });
+      setNewEmail("");
+      setNewRole("member");
+      setNewPassword("");
+      setShowNewPw(false);
+      setOpenInvite(false);
+    } catch (e) {
+      toast.error("Failed to add user", {
+        description: e instanceof Error ? e.message : "Unknown error",
+      });
+    }
   };
 
   const handleRoleChange = (email: string, role: Role) => {
