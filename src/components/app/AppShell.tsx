@@ -11,11 +11,14 @@ import {
   UserCircle2,
   ShieldCheck,
   Crown,
+  Languages,
+  Check,
 } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { signOut, useSession } from "@/lib/auth";
+import { useI18n, LANGUAGES, type TKey } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -26,15 +29,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean };
+type NavItem = { to: string; tKey: TKey; icon: typeof LayoutDashboard; adminOnly?: boolean };
 
 const nav: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/tasks", label: "Tasks", icon: ListChecks },
-  { to: "/projects", label: "Projects", icon: FolderKanban },
-  { to: "/departments", label: "Departments", icon: Building2 },
-  { to: "/employees", label: "Employees", icon: Users },
-  { to: "/users", label: "Users", icon: ShieldCheck, adminOnly: true },
+  { to: "/", tKey: "nav.dashboard", icon: LayoutDashboard },
+  { to: "/tasks", tKey: "nav.tasks", icon: ListChecks },
+  { to: "/projects", tKey: "nav.projects", icon: FolderKanban },
+  { to: "/departments", tKey: "nav.departments", icon: Building2 },
+  { to: "/employees", tKey: "nav.employees", icon: Users },
+  { to: "/users", tKey: "nav.users", icon: ShieldCheck, adminOnly: true },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -42,8 +45,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const session = useSession();
   const router = useRouter();
+  const { t, lang, setLang } = useI18n();
   const isAdmin = session?.role === "admin";
   const visibleNav = useMemo(() => nav.filter((n) => !n.adminOnly || isAdmin), [isAdmin]);
+  const currentLangNative = LANGUAGES.find((l) => l.code === lang)?.native ?? "EN";
 
   const handleLogout = () => {
     const report = signOut();
@@ -81,10 +86,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
           <div className="min-w-0">
             <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl">
-              TASK &amp; PROJECT TRACKER
+              {t("app.title")}
             </h1>
             <p className="hidden text-xs text-white/70 sm:block">
-              Track Tasks, Monitor Progress, Achieve Results
+              {t("app.tagline")}
             </p>
           </div>
           <nav className="ml-auto hidden items-center gap-1 lg:flex">
@@ -102,17 +107,38 @@ export function AppShell({ children }: { children: ReactNode }) {
                   )}
                 >
                   <n.icon className="h-4 w-4" />
-                  {n.label}
+                  {t(n.tKey)}
                 </Link>
               );
             })}
           </nav>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
+              <button
+                className="ml-1 flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-white/85 hover:bg-white/10"
+                aria-label={t("lang.label")}
+              >
+                <Languages className="h-4 w-4" />
+                <span className="hidden sm:inline">{currentLangNative}</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuLabel>{t("lang.label")}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {LANGUAGES.map((l) => (
+                <DropdownMenuItem key={l.code} onClick={() => setLang(l.code)}>
+                  <span className="flex-1">{l.native}</span>
+                  {lang === l.code && <Check className="ml-2 h-4 w-4 text-primary" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
               <button className="ml-1 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/85 hover:bg-white/10">
                 <UserCircle2 className="h-6 w-6" />
                 <span className="hidden max-w-[140px] truncate sm:inline">
-                  {session?.email ?? "Account"}
+                  {session?.email ?? t("account.label")}
                 </span>
                 {isAdmin && (
                   <Crown className="hidden h-3.5 w-3.5 text-amber-300 sm:inline" aria-label="Admin" />
@@ -121,7 +147,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-60">
               <DropdownMenuLabel>
-                <div className="truncate">{session?.email ?? "Not signed in"}</div>
+                <div className="truncate">{session?.email ?? t("account.notSignedIn")}</div>
                 {session && (
                   <Badge
                     className={cn(
@@ -131,18 +157,18 @@ export function AppShell({ children }: { children: ReactNode }) {
                         : "bg-slate-100 text-slate-700 hover:bg-slate-100",
                     )}
                   >
-                    {isAdmin ? "Admin" : "Member"}
+                    {isAdmin ? t("account.admin") : t("account.member")}
                   </Badge>
                 )}
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               {isAdmin && (
                 <DropdownMenuItem onClick={() => router.navigate({ to: "/users" })}>
-                  <ShieldCheck className="mr-2 h-4 w-4" /> Manage users
+                  <ShieldCheck className="mr-2 h-4 w-4" /> {t("account.manageUsers")}
                 </DropdownMenuItem>
               )}
               <DropdownMenuItem onClick={handleLogout} className="text-red-600 focus:text-red-600">
-                <LogOut className="mr-2 h-4 w-4" /> Log out
+                <LogOut className="mr-2 h-4 w-4" /> {t("account.logout")}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -163,7 +189,7 @@ export function AppShell({ children }: { children: ReactNode }) {
                     )}
                   >
                     <n.icon className="h-4 w-4" />
-                    {n.label}
+                    {t(n.tKey)}
                   </Link>
                 );
               })}
@@ -176,8 +202,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       <footer className="mx-auto max-w-[1600px] px-4 pb-8 pt-2 text-xs text-muted-foreground sm:px-6">
         <p>
-          <span className="font-semibold">Disclaimer:</span> This tracker is for internal use only.
-          Data accuracy is the responsibility of the user.
+          <span className="font-semibold">{t("footer.disclaimer")}</span> {t("footer.text")}
         </p>
       </footer>
     </div>

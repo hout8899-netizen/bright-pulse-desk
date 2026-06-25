@@ -14,6 +14,7 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { DataProvider } from "../lib/data-store";
 import { Toaster } from "../components/ui/sonner";
 import { useSession } from "../lib/auth";
+import { I18nProvider } from "../lib/i18n";
 
 function NotFoundComponent() {
   return (
@@ -131,12 +132,14 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <DataProvider>
-        <AuthGate>
-          <Outlet />
-        </AuthGate>
-        <Toaster />
-      </DataProvider>
+      <I18nProvider>
+        <DataProvider>
+          <AuthGate>
+            <Outlet />
+          </AuthGate>
+          <Toaster />
+        </DataProvider>
+      </I18nProvider>
     </QueryClientProvider>
   );
 }
