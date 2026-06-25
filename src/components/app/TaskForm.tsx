@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { useData } from "@/lib/data-store";
 import type { Task, Priority, Status } from "@/lib/mock-data";
+import { useI18n, useStatusLabel, usePriorityLabel } from "@/lib/i18n";
 
 const PRIORITIES: Priority[] = ["High", "Medium", "Low"];
 const STATUSES: Status[] = ["Completed", "In Progress", "Pending"];
@@ -47,6 +48,9 @@ const empty = (): Omit<Task, "id"> => ({
 
 export function TaskForm({ open, onOpenChange, task }: TaskFormProps) {
   const { addTask, updateTask, employees, departments, projects } = useData();
+  const { t } = useI18n();
+  const statusLabel = useStatusLabel();
+  const priorityLabel = usePriorityLabel();
   const [form, setForm] = useState<Omit<Task, "id">>(empty());
 
   useEffect(() => {
@@ -74,81 +78,79 @@ export function TaskForm({ open, onOpenChange, task }: TaskFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>{task ? "Edit Task" : "Add New Task"}</DialogTitle>
-          <DialogDescription>
-            {task ? "Update the task details below." : "Fill in the details to create a new task."}
-          </DialogDescription>
+          <DialogTitle>{task ? t("tform.edit") : t("tform.add")}</DialogTitle>
+          <DialogDescription>{task ? t("tform.editDesc") : t("tform.addDesc")}</DialogDescription>
         </DialogHeader>
 
         <div className="grid grid-cols-1 gap-4 py-2 sm:grid-cols-2">
-          <Field label="Employee Name">
+          <Field label={t("tform.employee")}>
             <Select value={form.employee} onValueChange={(v) => set("employee", v)}>
-              <SelectTrigger><SelectValue placeholder="Select employee" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("tform.selectEmployee")} /></SelectTrigger>
               <SelectContent>
                 {employees.map((e) => (<SelectItem key={e.id} value={e.name}>{e.name}</SelectItem>))}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Department">
+          <Field label={t("common.department")}>
             <Select value={form.department} onValueChange={(v) => set("department", v)}>
-              <SelectTrigger><SelectValue placeholder="Select department" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("tform.selectDepartment")} /></SelectTrigger>
               <SelectContent>
                 {departments.map((d) => (<SelectItem key={d.id} value={d.name}>{d.name}</SelectItem>))}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Project Name">
+          <Field label={t("tform.projectName")}>
             <Select value={form.project} onValueChange={(v) => set("project", v)}>
-              <SelectTrigger><SelectValue placeholder="Select project" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("tform.selectProject")} /></SelectTrigger>
               <SelectContent>
                 {projects.map((p) => (<SelectItem key={p.id} value={p.name}>{p.name}</SelectItem>))}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Manager">
-            <Input value={form.manager} onChange={(e) => set("manager", e.target.value)} placeholder="Manager name" />
+          <Field label={t("common.manager")}>
+            <Input value={form.manager} onChange={(e) => set("manager", e.target.value)} placeholder={t("tform.managerPh")} />
           </Field>
-          <Field label="Task Description" className="sm:col-span-2">
-            <Input value={form.description} onChange={(e) => set("description", e.target.value)} placeholder="What needs to be done?" />
+          <Field label={t("tform.descLabel")} className="sm:col-span-2">
+            <Input value={form.description} onChange={(e) => set("description", e.target.value)} placeholder={t("tform.descPh")} />
           </Field>
-          <Field label="Priority">
+          <Field label={t("common.priority")}>
             <Select value={form.priority} onValueChange={(v) => set("priority", v as Priority)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {PRIORITIES.map((p) => (<SelectItem key={p} value={p}>{p}</SelectItem>))}
+                {PRIORITIES.map((p) => (<SelectItem key={p} value={p}>{priorityLabel(p)}</SelectItem>))}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Status">
+          <Field label={t("common.status")}>
             <Select value={form.status} onValueChange={(v) => set("status", v as Status)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                {STATUSES.map((s) => (<SelectItem key={s} value={s}>{s}</SelectItem>))}
+                {STATUSES.map((s) => (<SelectItem key={s} value={s}>{statusLabel(s)}</SelectItem>))}
               </SelectContent>
             </Select>
           </Field>
-          <Field label="Start Date">
+          <Field label={t("common.startDate")}>
             <Input type="date" value={form.startDate} onChange={(e) => set("startDate", e.target.value)} />
           </Field>
-          <Field label="Due Date">
+          <Field label={t("common.dueDate")}>
             <Input type="date" value={form.dueDate} onChange={(e) => set("dueDate", e.target.value)} />
           </Field>
-          <Field label="Completion %">
+          <Field label={t("tform.completionPct")}>
             <Input type="number" min={0} max={100} value={form.completion}
               onChange={(e) => set("completion", Math.max(0, Math.min(100, Number(e.target.value) || 0)))} />
           </Field>
-          <Field label="Hours Worked">
+          <Field label={t("tform.hoursWorked")}>
             <Input type="number" min={0} step={0.5} value={form.hours}
               onChange={(e) => set("hours", Math.max(0, Number(e.target.value) || 0))} />
           </Field>
-          <Field label="Notes" className="sm:col-span-2">
-            <Textarea value={form.notes ?? ""} onChange={(e) => set("notes", e.target.value)} rows={3} placeholder="Additional notes…" />
+          <Field label={t("common.notes")} className="sm:col-span-2">
+            <Textarea value={form.notes ?? ""} onChange={(e) => set("notes", e.target.value)} rows={3} placeholder={t("tform.notesPh")} />
           </Field>
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={submit}>{task ? "Save Changes" : "Create Task"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+          <Button onClick={submit}>{task ? t("common.saveChanges") : t("tform.createTask")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
