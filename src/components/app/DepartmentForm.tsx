@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { useData } from "@/lib/data-store";
 import type { Department } from "@/lib/mock-data";
+import { useI18n } from "@/lib/i18n";
 
 interface DepartmentFormProps {
   open: boolean;
@@ -21,6 +22,7 @@ interface DepartmentFormProps {
 
 export function DepartmentForm({ open, onOpenChange, department }: DepartmentFormProps) {
   const { addDepartment, updateDepartment } = useData();
+  const { t } = useI18n();
   const [name, setName] = useState("");
   const [head, setHead] = useState("");
 
@@ -42,24 +44,24 @@ export function DepartmentForm({ open, onOpenChange, department }: DepartmentFor
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{department ? "Edit Department" : "New Department"}</DialogTitle>
+          <DialogTitle>{department ? t("dept.edit") : t("dept.new")}</DialogTitle>
           <DialogDescription>
-            {department ? "Update the department details." : "Create a new department."}
+            {department ? t("dept.formEditDesc") : t("dept.formNewDesc")}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4 py-2">
           <div>
-            <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">Department Name</Label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g. Engineering" />
+            <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">{t("common.department")}</Label>
+            <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("dept.namePh")} />
           </div>
           <div>
-            <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">Department Head</Label>
-            <Input value={head} onChange={(e) => setHead(e.target.value)} placeholder="Head of department" />
+            <Label className="mb-1.5 block text-xs font-medium text-muted-foreground">{t("dept.head")}</Label>
+            <Input value={head} onChange={(e) => setHead(e.target.value)} placeholder={t("dept.headPh")} />
           </div>
         </div>
         <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
-          <Button onClick={submit}>{department ? "Save Changes" : "Create"}</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>
+          <Button onClick={submit}>{department ? t("common.saveChanges") : t("common.create")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

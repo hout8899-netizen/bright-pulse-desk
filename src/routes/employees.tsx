@@ -4,6 +4,7 @@ import { useData } from "@/lib/data-store";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { ProgressBar } from "@/components/app/TaskTable";
 import { useMemo } from "react";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/employees")({
   head: () => ({
@@ -17,13 +18,14 @@ export const Route = createFileRoute("/employees")({
 
 function EmployeesPage() {
   const { employees, tasks } = useData();
+  const { t } = useI18n();
 
   const rows = useMemo(() => {
     return employees.map((e) => {
-      const myTasks = tasks.filter((t) => t.employee === e.name);
-      const assignedProjects = new Set(myTasks.map((t) => t.project)).size;
+      const myTasks = tasks.filter((tt) => tt.employee === e.name);
+      const assignedProjects = new Set(myTasks.map((tt) => tt.project)).size;
       const avgCompletion = myTasks.length
-        ? Math.round(myTasks.reduce((s, t) => s + t.completion, 0) / myTasks.length)
+        ? Math.round(myTasks.reduce((s, tt) => s + tt.completion, 0) / myTasks.length)
         : 0;
       return { ...e, totalTasks: myTasks.length, assignedProjects, avgCompletion };
     });
@@ -32,22 +34,22 @@ function EmployeesPage() {
   return (
     <AppShell>
       <div className="mb-4">
-        <h1 className="text-2xl font-bold tracking-tight">Employees</h1>
-        <p className="text-sm text-muted-foreground">Team directory and individual workload.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("emp.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("emp.subtitle")}</p>
       </div>
 
       <div className="overflow-x-auto rounded-xl border bg-card shadow-card">
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead>Name</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Position</TableHead>
-              <TableHead>Email</TableHead>
-              <TableHead>Phone</TableHead>
-              <TableHead className="text-right">Projects</TableHead>
-              <TableHead className="text-right">Tasks</TableHead>
-              <TableHead className="min-w-[160px]">Completion %</TableHead>
+              <TableHead>{t("common.name")}</TableHead>
+              <TableHead>{t("common.department")}</TableHead>
+              <TableHead>{t("common.position")}</TableHead>
+              <TableHead>{t("common.email")}</TableHead>
+              <TableHead>{t("common.phone")}</TableHead>
+              <TableHead className="text-right">{t("common.projects")}</TableHead>
+              <TableHead className="text-right">{t("common.tasks")}</TableHead>
+              <TableHead className="min-w-[160px]">{t("emp.completionPct")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

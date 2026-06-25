@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { AppShell } from "@/components/app/AppShell";
 import { TaskTable } from "@/components/app/TaskTable";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/tasks")({
   head: () => ({
@@ -13,11 +14,12 @@ export const Route = createFileRoute("/tasks")({
 });
 
 function TasksPage() {
+  const { t } = useI18n();
   return (
     <AppShell>
       <div className="mb-4">
-        <h1 className="text-2xl font-bold tracking-tight">Tasks</h1>
-        <p className="text-sm text-muted-foreground">All tasks across projects and departments.</p>
+        <h1 className="text-2xl font-bold tracking-tight">{t("tasks.title")}</h1>
+        <p className="text-sm text-muted-foreground">{t("tasks.subtitle")}</p>
       </div>
       <TaskTable />
     </AppShell>

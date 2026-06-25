@@ -42,6 +42,7 @@ import {
   DEMO_ADMIN_EMAIL,
   type Role,
 } from "@/lib/auth";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/users")({
   head: () => ({
@@ -57,16 +58,16 @@ function UsersPage() {
   const navigate = useNavigate();
   const session = useSession();
   const users = useUsers();
+  const { t } = useI18n();
 
-  // Client-side guard
   useEffect(() => {
     if (session === null) {
       navigate({ to: "/login" });
     } else if (session.role !== "admin") {
-      toast.error("Access denied", { description: "Admins only." });
+      toast.error(t("users.accessDenied"), { description: t("users.adminsOnly") });
       navigate({ to: "/" });
     }
-  }, [session, navigate]);
+  }, [session, navigate, t]);
 
   const [query, setQuery] = useState("");
   const [openInvite, setOpenInvite] = useState(false);
@@ -94,117 +95,105 @@ function UsersPage() {
   const handleInvite = () => {
     const email = newEmail.trim();
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-      toast.error("Enter a valid email");
+      toast.error(t("users.invalidEmail"));
       return;
     }
     if (newPassword.length < 6) {
-      toast.error("Password must be at least 6 characters");
+      toast.error(t("users.passwordMin"));
       return;
     }
     try {
       upsertUser(email, newRole, newPassword);
-      toast.success("User added", { description: `${email} • ${newRole}` });
+      toast.success(t("users.userAdded"), { description: `${email} • ${newRole}` });
       setNewEmail("");
       setNewRole("member");
       setNewPassword("");
       setShowNewPw(false);
       setOpenInvite(false);
     } catch (e) {
-      toast.error("Failed to add user", {
-        description: e instanceof Error ? e.message : "Unknown error",
-      });
+      toast.error("Failed", { description: e instanceof Error ? e.message : "Unknown error" });
     }
   };
 
   const handleRoleChange = (email: string, role: Role) => {
     try {
       setUserRole(email, role);
-      toast.success("Role updated", { description: `${email} → ${role}` });
+      toast.success(t("users.roleUpdated"), { description: `${email} → ${role}` });
     } catch (e) {
-      toast.error("Cannot change role", {
-        description: e instanceof Error ? e.message : "Unknown error",
-      });
+      toast.error("Cannot change role", { description: e instanceof Error ? e.message : "Unknown error" });
     }
   };
 
   const handleRemove = (email: string) => {
     try {
       removeUser(email);
-      toast.success("User removed", { description: email });
+      toast.success(t("users.userRemoved"), { description: email });
     } catch (e) {
-      toast.error("Cannot remove user", {
-        description: e instanceof Error ? e.message : "Unknown error",
-      });
+      toast.error("Cannot remove user", { description: e instanceof Error ? e.message : "Unknown error" });
     }
   };
 
-  if (!session || session.role !== "admin") {
-    return null;
-  }
+  if (!session || session.role !== "admin") return null;
 
   return (
     <AppShell>
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-indigo-600">
-            <Shield className="h-4 w-4" /> Admin
+            <Shield className="h-4 w-4" /> {t("users.adminBadge")}
           </div>
-          <h1 className="mt-1 text-2xl font-bold text-slate-900">Users &amp; Roles</h1>
-          <p className="text-sm text-slate-500">
-            Manage who can access this workspace and what they can do.
-          </p>
+          <h1 className="mt-1 text-2xl font-bold text-slate-900">{t("users.title")}</h1>
+          <p className="text-sm text-slate-500">{t("users.subtitle")}</p>
         </div>
 
         <Dialog open={openInvite} onOpenChange={setOpenInvite}>
           <DialogTrigger asChild>
             <Button className="bg-indigo-600 hover:bg-indigo-700">
-              <UserPlus className="mr-2 h-4 w-4" /> Add user
+              <UserPlus className="mr-2 h-4 w-4" /> {t("users.addUser")}
             </Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Add a user</DialogTitle>
-              <DialogDescription>
-                The user will be able to sign in with this email (mock mode — any password works).
-              </DialogDescription>
+              <DialogTitle>{t("users.addUserTitle")}</DialogTitle>
+              <DialogDescription>{t("users.addUserDesc")}</DialogDescription>
             </DialogHeader>
             <div className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="invite-email">Email</Label>
+                <Label htmlFor="invite-email">{t("common.email")}</Label>
                 <Input
                   id="invite-email"
                   type="email"
-                  placeholder="person@company.com"
+                  placeholder={t("users.emailPh")}
                   value={newEmail}
                   onChange={(e) => setNewEmail(e.target.value)}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Role</Label>
+                <Label>{t("common.role")}</Label>
                 <Select value={newRole} onValueChange={(v) => setNewRole(v as Role)}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="member">Member — view & edit content</SelectItem>
-                    <SelectItem value="admin">Admin — full access &amp; user management</SelectItem>
+                    <SelectItem value="member">{t("users.memberOpt")}</SelectItem>
+                    <SelectItem value="admin">{t("users.adminOpt")}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="invite-password">Password</Label>
+                  <Label htmlFor="invite-password">{t("common.password")}</Label>
                   <button
                     type="button"
                     onClick={genPassword}
                     className="flex items-center gap-1 text-xs font-medium text-indigo-600 hover:text-indigo-700"
                   >
-                    <RefreshCw className="h-3 w-3" /> Generate
+                    <RefreshCw className="h-3 w-3" /> {t("users.generate")}
                   </button>
                 </div>
                 <div className="relative">
                   <Input
                     id="invite-password"
                     type={showNewPw ? "text" : "password"}
-                    placeholder="At least 6 characters"
+                    placeholder={t("users.passwordPh")}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     className="pr-20"
@@ -215,7 +204,7 @@ function UsersPage() {
                         type="button"
                         onClick={() => {
                           navigator.clipboard?.writeText(newPassword);
-                          toast.success("Password copied");
+                          toast.success(t("users.passwordCopied"));
                         }}
                         className="p-1 text-slate-400 hover:text-slate-600"
                         aria-label="Copy password"
@@ -233,15 +222,13 @@ function UsersPage() {
                     </button>
                   </div>
                 </div>
-                <p className="text-[11px] text-slate-500">
-                  Share this password securely with the user — they'll use it to sign in.
-                </p>
+                <p className="text-[11px] text-slate-500">{t("users.passwordHint")}</p>
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setOpenInvite(false)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setOpenInvite(false)}>{t("common.cancel")}</Button>
               <Button className="bg-indigo-600 hover:bg-indigo-700" onClick={handleInvite}>
-                Add user
+                {t("users.addUser")}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -249,9 +236,9 @@ function UsersPage() {
       </div>
 
       <div className="mb-4 grid gap-3 sm:grid-cols-3">
-        <StatCard label="Total users" value={users.length} icon={UserIcon} />
-        <StatCard label="Admins" value={adminCount} icon={Crown} accent="indigo" />
-        <StatCard label="Members" value={users.length - adminCount} icon={ShieldCheck} accent="emerald" />
+        <StatCard label={t("users.totalUsers")} value={users.length} icon={UserIcon} />
+        <StatCard label={t("users.admins")} value={adminCount} icon={Crown} accent="indigo" />
+        <StatCard label={t("users.members")} value={users.length - adminCount} icon={ShieldCheck} accent="emerald" />
       </div>
 
       <div className="rounded-lg border border-slate-200 bg-white shadow-sm">
@@ -259,7 +246,7 @@ function UsersPage() {
           <div className="relative flex-1 max-w-sm">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
             <Input
-              placeholder="Search by email..."
+              placeholder={t("users.searchPh")}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               className="pl-9"
@@ -270,18 +257,18 @@ function UsersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Email</TableHead>
-              <TableHead className="w-[180px]">Role</TableHead>
-              <TableHead className="hidden md:table-cell">Created</TableHead>
-              <TableHead className="hidden md:table-cell">Last login</TableHead>
-              <TableHead className="w-[80px] text-right">Actions</TableHead>
+              <TableHead>{t("common.email")}</TableHead>
+              <TableHead className="w-[180px]">{t("common.role")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("common.created")}</TableHead>
+              <TableHead className="hidden md:table-cell">{t("common.lastLogin")}</TableHead>
+              <TableHead className="w-[80px] text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="py-8 text-center text-sm text-slate-500">
-                  No users match your search.
+                  {t("users.noMatch")}
                 </TableCell>
               </TableRow>
             ) : (
@@ -293,8 +280,8 @@ function UsersPage() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="font-medium text-slate-900">{u.email}</span>
-                        {isSelf && <Badge variant="secondary" className="text-[10px]">you</Badge>}
-                        {isDemo && <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-[10px]">demo</Badge>}
+                        {isSelf && <Badge variant="secondary" className="text-[10px]">{t("common.you")}</Badge>}
+                        {isDemo && <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100 text-[10px]">{t("common.demo")}</Badge>}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -303,15 +290,13 @@ function UsersPage() {
                         onValueChange={(v) => handleRoleChange(u.email, v as Role)}
                         disabled={isDemo}
                       >
-                        <SelectTrigger className="h-8 w-[150px]">
-                          <SelectValue />
-                        </SelectTrigger>
+                        <SelectTrigger className="h-8 w-[150px]"><SelectValue /></SelectTrigger>
                         <SelectContent>
                           <SelectItem value="admin">
-                            <span className="flex items-center gap-2"><Crown className="h-3.5 w-3.5 text-indigo-600" /> Admin</span>
+                            <span className="flex items-center gap-2"><Crown className="h-3.5 w-3.5 text-indigo-600" /> {t("account.admin")}</span>
                           </SelectItem>
                           <SelectItem value="member">
-                            <span className="flex items-center gap-2"><UserIcon className="h-3.5 w-3.5 text-slate-500" /> Member</span>
+                            <span className="flex items-center gap-2"><UserIcon className="h-3.5 w-3.5 text-slate-500" /> {t("account.member")}</span>
                           </SelectItem>
                         </SelectContent>
                       </Select>
@@ -329,7 +314,7 @@ function UsersPage() {
                         className="h-8 w-8 text-slate-400 hover:text-red-600"
                         disabled={isDemo || isSelf}
                         onClick={() => handleRemove(u.email)}
-                        aria-label={`Remove ${u.email}`}
+                        aria-label={t("common.delete")}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -343,10 +328,10 @@ function UsersPage() {
       </div>
 
       <div className="mt-6 rounded-lg border border-slate-200 bg-slate-50 p-4 text-xs text-slate-600">
-        <div className="font-semibold text-slate-800">Role permissions</div>
+        <div className="font-semibold text-slate-800">{t("users.rolePermissions")}</div>
         <ul className="mt-2 space-y-1">
-          <li><strong className="text-indigo-700">Admin</strong> — full access to all pages, plus user &amp; role management.</li>
-          <li><strong className="text-slate-700">Member</strong> — can view and edit tasks, projects, departments, and employees. Cannot manage users.</li>
+          <li><strong className="text-indigo-700">{t("account.admin")}</strong> — {t("users.adminPerm")}</li>
+          <li><strong className="text-slate-700">{t("account.member")}</strong> — {t("users.memberPerm")}</li>
         </ul>
       </div>
     </AppShell>

@@ -26,6 +26,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { toast } from "sonner";
+import { useI18n } from "@/lib/i18n";
 
 export const Route = createFileRoute("/departments")({
   head: () => ({
@@ -39,6 +40,7 @@ export const Route = createFileRoute("/departments")({
 
 function DepartmentsPage() {
   const { departments, employees, projects, tasks, deleteDepartment } = useData();
+  const { t } = useI18n();
   const [selected, setSelected] = useState<Department | null>(null);
   const [editing, setEditing] = useState<Department | null>(null);
   const [formOpen, setFormOpen] = useState(false);
@@ -48,22 +50,16 @@ function DepartmentsPage() {
     return departments.map((d) => {
       const empCount = employees.filter((e) => e.department === d.name).length;
       const activeProjects = projects.filter((p) => p.department === d.name && p.status !== "Completed").length;
-      const totalTasks = tasks.filter((t) => t.department === d.name).length;
+      const totalTasks = tasks.filter((tt) => tt.department === d.name).length;
       return { ...d, empCount, activeProjects, totalTasks };
     });
   }, [departments, employees, projects, tasks]);
 
-  const openNew = () => {
-    setEditing(null);
-    setFormOpen(true);
-  };
-  const openEdit = (d: Department) => {
-    setEditing(d);
-    setFormOpen(true);
-  };
+  const openNew = () => { setEditing(null); setFormOpen(true); };
+  const openEdit = (d: Department) => { setEditing(d); setFormOpen(true); };
   const handleDelete = (d: Department) => {
     deleteDepartment(d.id);
-    toast.success(`Deleted department "${d.name}"`);
+    toast.success(`${t("dept.deletedToast")}: "${d.name}"`);
     setConfirmDelete(null);
     if (selected?.id === d.id) setSelected(null);
   };
@@ -72,11 +68,11 @@ function DepartmentsPage() {
     <AppShell>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Departments</h1>
-          <p className="text-sm text-muted-foreground">Click a department to see its team, projects, and tasks.</p>
+          <h1 className="text-2xl font-bold tracking-tight">{t("dept.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("dept.subtitle")}</p>
         </div>
         <Button onClick={openNew} className="shrink-0">
-          <Plus className="mr-1.5 h-4 w-4" /> New Department
+          <Plus className="mr-1.5 h-4 w-4" /> {t("dept.new")}
         </Button>
       </div>
 
@@ -84,12 +80,12 @@ function DepartmentsPage() {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead>Department</TableHead>
-              <TableHead>Department Head</TableHead>
-              <TableHead className="text-right">Employees</TableHead>
-              <TableHead className="text-right">Active Projects</TableHead>
-              <TableHead className="text-right">Total Tasks</TableHead>
-              <TableHead className="w-20 text-right">Actions</TableHead>
+              <TableHead>{t("common.department")}</TableHead>
+              <TableHead>{t("dept.head")}</TableHead>
+              <TableHead className="text-right">{t("common.employees")}</TableHead>
+              <TableHead className="text-right">{t("common.activeProjects")}</TableHead>
+              <TableHead className="text-right">{t("common.totalTasks")}</TableHead>
+              <TableHead className="w-20 text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -110,22 +106,22 @@ function DepartmentsPage() {
                       <DropdownMenuTrigger asChild>
                         <Button variant="ghost" size="icon" className="h-8 w-8">
                           <MoreHorizontal className="h-4 w-4" />
-                          <span className="sr-only">Actions</span>
+                          <span className="sr-only">{t("common.actions")}</span>
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
                         <DropdownMenuItem onClick={() => setSelected(d)}>
-                          <ChevronRight className="mr-2 h-4 w-4" /> View details
+                          <ChevronRight className="mr-2 h-4 w-4" /> {t("dept.viewDetails")}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => openEdit(d)}>
-                          <Pencil className="mr-2 h-4 w-4" /> Edit
+                          <Pencil className="mr-2 h-4 w-4" /> {t("common.edit")}
                         </DropdownMenuItem>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           className="text-destructive focus:text-destructive"
                           onClick={() => setConfirmDelete(d)}
                         >
-                          <Trash2 className="mr-2 h-4 w-4" /> Delete
+                          <Trash2 className="mr-2 h-4 w-4" /> {t("common.delete")}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -141,10 +137,7 @@ function DepartmentsPage() {
         department={selected}
         open={!!selected}
         onOpenChange={(o) => !o && setSelected(null)}
-        onEdit={(d) => {
-          setSelected(null);
-          openEdit(d);
-        }}
+        onEdit={(d) => { setSelected(null); openEdit(d); }}
         onDelete={(d) => setConfirmDelete(d)}
       />
 
@@ -153,19 +146,16 @@ function DepartmentsPage() {
       <AlertDialog open={!!confirmDelete} onOpenChange={(o) => !o && setConfirmDelete(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete department?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will remove "{confirmDelete?.name}" from the list. Employees, projects, and tasks
-              referencing it will keep their current labels.
-            </AlertDialogDescription>
+            <AlertDialogTitle>{t("dept.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("dept.deleteDesc")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction
               onClick={() => confirmDelete && handleDelete(confirmDelete)}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
