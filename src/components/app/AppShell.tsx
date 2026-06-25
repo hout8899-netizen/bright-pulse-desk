@@ -45,8 +45,10 @@ export function AppShell({ children }: { children: ReactNode }) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const session = useSession();
   const router = useRouter();
+  const { t, lang, setLang } = useI18n();
   const isAdmin = session?.role === "admin";
   const visibleNav = useMemo(() => nav.filter((n) => !n.adminOnly || isAdmin), [isAdmin]);
+  const currentLangNative = LANGUAGES.find((l) => l.code === lang)?.native ?? "EN";
 
   const handleLogout = () => {
     const report = signOut();
@@ -84,10 +86,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           </button>
           <div className="min-w-0">
             <h1 className="truncate text-lg font-bold tracking-tight sm:text-xl">
-              TASK &amp; PROJECT TRACKER
+              {t("app.title")}
             </h1>
             <p className="hidden text-xs text-white/70 sm:block">
-              Track Tasks, Monitor Progress, Achieve Results
+              {t("app.tagline")}
             </p>
           </div>
           <nav className="ml-auto hidden items-center gap-1 lg:flex">
@@ -105,11 +107,32 @@ export function AppShell({ children }: { children: ReactNode }) {
                   )}
                 >
                   <n.icon className="h-4 w-4" />
-                  {n.label}
+                  {t(n.tKey)}
                 </Link>
               );
             })}
           </nav>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                className="ml-1 flex items-center gap-1.5 rounded-md px-2 py-1.5 text-sm text-white/85 hover:bg-white/10"
+                aria-label={t("lang.label")}
+              >
+                <Languages className="h-4 w-4" />
+                <span className="hidden sm:inline">{currentLangNative}</span>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-44">
+              <DropdownMenuLabel>{t("lang.label")}</DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {LANGUAGES.map((l) => (
+                <DropdownMenuItem key={l.code} onClick={() => setLang(l.code)}>
+                  <span className="flex-1">{l.native}</span>
+                  {lang === l.code && <Check className="ml-2 h-4 w-4 text-primary" />}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <button className="ml-1 flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-white/85 hover:bg-white/10">
