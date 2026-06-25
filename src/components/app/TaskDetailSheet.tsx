@@ -5,6 +5,7 @@ import { isOverdue, type Task, type TaskHistoryEntry } from "@/lib/mock-data";
 import { PriorityBadge, StatusBadge, OverdueBadge } from "./Badges";
 import { ProgressBar } from "./TaskTable";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 import {
   Calendar,
   CalendarCheck2,
@@ -152,6 +153,7 @@ const toneStyles: Record<EventEntry["tone"], string> = {
 };
 
 export function TaskDetailSheet({ task, open, onOpenChange, onEdit }: TaskDetailSheetProps) {
+  const { t } = useI18n();
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full overflow-y-auto p-0 sm:max-w-xl">
