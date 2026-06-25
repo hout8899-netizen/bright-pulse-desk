@@ -10,6 +10,7 @@ import { Building2, Users, FolderKanban, ListChecks, Clock, AlertTriangle, Check
 import type { LucideIcon } from "lucide-react";
 import { useMemo } from "react";
 import { cn } from "@/lib/utils";
+import { useI18n } from "@/lib/i18n";
 
 interface DepartmentDetailSheetProps {
   department: Department | null;
@@ -21,17 +22,18 @@ interface DepartmentDetailSheetProps {
 
 export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, onDelete }: DepartmentDetailSheetProps) {
   const { employees, projects, tasks } = useData();
+  const { t } = useI18n();
 
   const summary = useMemo(() => {
     if (!department) return null;
     const deptEmployees = employees.filter((e) => e.department === department.name);
     const deptProjects = projects.filter((p) => p.department === department.name);
-    const deptTasks = tasks.filter((t) => t.department === department.name);
-    const completed = deptTasks.filter((t) => t.status === "Completed").length;
+    const deptTasks = tasks.filter((tt) => tt.department === department.name);
+    const completed = deptTasks.filter((tt) => tt.status === "Completed").length;
     const overdue = deptTasks.filter(isOverdue).length;
-    const totalHours = deptTasks.reduce((sum, t) => sum + t.hours, 0);
+    const totalHours = deptTasks.reduce((sum, tt) => sum + tt.hours, 0);
     const avgCompletion = deptTasks.length
-      ? Math.round(deptTasks.reduce((s, t) => s + t.completion, 0) / deptTasks.length)
+      ? Math.round(deptTasks.reduce((s, tt) => s + tt.completion, 0) / deptTasks.length)
       : 0;
     return { deptEmployees, deptProjects, deptTasks, completed, overdue, totalHours, avgCompletion };
   }, [department, employees, projects, tasks]);
@@ -50,14 +52,14 @@ export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, 
                   <p className="text-xs font-mono text-muted-foreground">{department.id}</p>
                   <SheetTitle className="text-lg leading-tight">{department.name}</SheetTitle>
                   <SheetDescription className="flex items-center gap-1.5 text-sm">
-                    <UserCog className="h-3.5 w-3.5" /> Head: {department.head}
+                    <UserCog className="h-3.5 w-3.5" /> {t("dept.head")}: {department.head}
                   </SheetDescription>
                 </div>
                 {(onEdit || onDelete) && (
                   <div className="flex shrink-0 items-center gap-1">
                     {onEdit && (
                       <Button variant="outline" size="sm" onClick={() => onEdit(department)}>
-                        <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
+                        <Pencil className="mr-1.5 h-3.5 w-3.5" /> {t("common.edit")}
                       </Button>
                     )}
                     {onDelete && (
@@ -68,7 +70,7 @@ export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, 
                         onClick={() => onDelete(department)}
                       >
                         <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Delete department</span>
+                        <span className="sr-only">{t("common.delete")}</span>
                       </Button>
                     )}
                   </div>
@@ -77,34 +79,28 @@ export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, 
             </SheetHeader>
 
             <div className="space-y-6 p-6">
-              {/* Overview KPIs */}
               <section>
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Overview
+                  {t("dept.overview")}
                 </h3>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-                  <Stat icon={Users} label="Employees" value={summary.deptEmployees.length} />
-                  <Stat icon={FolderKanban} label="Projects" value={summary.deptProjects.length} />
-                  <Stat icon={ListChecks} label="Tasks" value={summary.deptTasks.length} />
-                  <Stat
-                    icon={AlertTriangle}
-                    label="Overdue"
-                    value={summary.overdue}
-                    danger={summary.overdue > 0}
-                  />
+                  <Stat icon={Users} label={t("common.employees")} value={summary.deptEmployees.length} />
+                  <Stat icon={FolderKanban} label={t("common.projects")} value={summary.deptProjects.length} />
+                  <Stat icon={ListChecks} label={t("common.tasks")} value={summary.deptTasks.length} />
+                  <Stat icon={AlertTriangle} label={t("status.Overdue")} value={summary.overdue} danger={summary.overdue > 0} />
                 </div>
                 <div className="mt-4 space-y-2">
                   <div className="flex items-center justify-between text-xs text-muted-foreground">
-                    <span>Avg. completion</span>
+                    <span>{t("dept.avgCompletion")}</span>
                     <span className="font-medium text-foreground">{summary.avgCompletion}%</span>
                   </div>
                   <ProgressBar value={summary.avgCompletion} />
                   <div className="flex items-center justify-between pt-2 text-xs text-muted-foreground">
                     <span className="flex items-center gap-1.5">
-                      <CheckCircle2 className="h-3.5 w-3.5 text-success" /> {summary.completed} completed
+                      <CheckCircle2 className="h-3.5 w-3.5 text-success" /> {summary.completed} {t("dept.completedSuffix")}
                     </span>
                     <span className="flex items-center gap-1.5">
-                      <Clock className="h-3.5 w-3.5" /> {summary.totalHours}h logged
+                      <Clock className="h-3.5 w-3.5" /> {summary.totalHours}h {t("dept.loggedSuffix")}
                     </span>
                   </div>
                 </div>
@@ -112,13 +108,12 @@ export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, 
 
               <Separator />
 
-              {/* Employees */}
               <section>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Team ({summary.deptEmployees.length})
+                  {t("dept.team")} ({summary.deptEmployees.length})
                 </h3>
                 {summary.deptEmployees.length === 0 ? (
-                  <EmptyHint>No employees assigned to this department.</EmptyHint>
+                  <EmptyHint>{t("dept.noEmps")}</EmptyHint>
                 ) : (
                   <ul className="space-y-2">
                     {summary.deptEmployees.map((e) => (
@@ -136,13 +131,12 @@ export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, 
 
               <Separator />
 
-              {/* Projects */}
               <section>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Projects ({summary.deptProjects.length})
+                  {t("common.projects")} ({summary.deptProjects.length})
                 </h3>
                 {summary.deptProjects.length === 0 ? (
-                  <EmptyHint>No projects in this department.</EmptyHint>
+                  <EmptyHint>{t("dept.noProjects")}</EmptyHint>
                 ) : (
                   <ul className="space-y-2">
                     {summary.deptProjects.map((p) => (
@@ -150,7 +144,7 @@ export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, 
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <p className="truncate text-sm font-medium">{p.name}</p>
-                            <p className="truncate text-xs text-muted-foreground">Manager: {p.manager}</p>
+                            <p className="truncate text-xs text-muted-foreground">{t("common.manager")}: {p.manager}</p>
                           </div>
                           <StatusBadge status={p.status} />
                         </div>
@@ -162,40 +156,39 @@ export function DepartmentDetailSheet({ department, open, onOpenChange, onEdit, 
 
               <Separator />
 
-              {/* Recent tasks */}
               <section>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Tasks ({summary.deptTasks.length})
+                  {t("common.tasks")} ({summary.deptTasks.length})
                 </h3>
                 {summary.deptTasks.length === 0 ? (
-                  <EmptyHint>No tasks for this department yet.</EmptyHint>
+                  <EmptyHint>{t("dept.noTasks")}</EmptyHint>
                 ) : (
                   <ul className="space-y-2">
-                    {summary.deptTasks.slice(0, 8).map((t) => (
-                      <li key={t.id} className="rounded-lg border bg-card p-3">
+                    {summary.deptTasks.slice(0, 8).map((tt) => (
+                      <li key={tt.id} className="rounded-lg border bg-card p-3">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1">
-                            <p className="truncate text-sm font-medium">{t.description}</p>
+                            <p className="truncate text-sm font-medium">{tt.description}</p>
                             <p className="truncate text-xs text-muted-foreground">
-                              {t.employee} · {t.project}
+                              {tt.employee} · {tt.project}
                             </p>
                           </div>
                           <div className="flex shrink-0 flex-col items-end gap-1">
                             <div className="flex items-center gap-1">
-                              <PriorityBadge priority={t.priority} />
-                              {isOverdue(t) && <OverdueBadge />}
+                              <PriorityBadge priority={tt.priority} />
+                              {isOverdue(tt) && <OverdueBadge />}
                             </div>
-                            <StatusBadge status={t.status} />
+                            <StatusBadge status={tt.status} />
                           </div>
                         </div>
                         <div className="mt-2">
-                          <ProgressBar value={t.completion} />
+                          <ProgressBar value={tt.completion} />
                         </div>
                       </li>
                     ))}
                     {summary.deptTasks.length > 8 && (
                       <li className="text-center text-xs text-muted-foreground">
-                        + {summary.deptTasks.length - 8} more tasks
+                        + {summary.deptTasks.length - 8} {t("dept.moreTasks")}
                       </li>
                     )}
                   </ul>

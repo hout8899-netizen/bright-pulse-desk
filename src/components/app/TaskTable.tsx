@@ -33,11 +33,15 @@ import { isOverdue, type Task } from "@/lib/mock-data";
 import { PriorityBadge, StatusBadge, OverdueBadge } from "./Badges";
 import { TaskForm } from "./TaskForm";
 import { cn } from "@/lib/utils";
+import { useI18n, useStatusLabel, usePriorityLabel } from "@/lib/i18n";
 
 const ALL = "__all";
 
 export function TaskTable({ defaultProject }: { defaultProject?: string }) {
   const { tasks, projects, departments, deleteTask } = useData();
+  const { t } = useI18n();
+  const statusLabel = useStatusLabel();
+  const priorityLabel = usePriorityLabel();
   const [search, setSearch] = useState("");
   const [projectF, setProjectF] = useState<string>(defaultProject ?? ALL);
   const [deptF, setDeptF] = useState<string>(ALL);
@@ -51,12 +55,12 @@ export function TaskTable({ defaultProject }: { defaultProject?: string }) {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return tasks.filter((t) => {
-      if (q && !`${t.id} ${t.description} ${t.employee}`.toLowerCase().includes(q)) return false;
-      if (projectF !== ALL && t.project !== projectF) return false;
-      if (deptF !== ALL && t.department !== deptF) return false;
-      if (statusF !== ALL && t.status !== statusF) return false;
-      if (priorityF !== ALL && t.priority !== priorityF) return false;
+    return tasks.filter((tt) => {
+      if (q && !`${tt.id} ${tt.description} ${tt.employee}`.toLowerCase().includes(q)) return false;
+      if (projectF !== ALL && tt.project !== projectF) return false;
+      if (deptF !== ALL && tt.department !== deptF) return false;
+      if (statusF !== ALL && tt.status !== statusF) return false;
+      if (priorityF !== ALL && tt.priority !== priorityF) return false;
       return true;
     });
   }, [tasks, search, projectF, deptF, statusF, priorityF]);
@@ -70,20 +74,20 @@ export function TaskTable({ defaultProject }: { defaultProject?: string }) {
             <Input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search tasks…"
+              placeholder={t("tasks.searchPh")}
               className="pl-9"
             />
           </div>
-          <FilterSelect value={projectF} onChange={setProjectF} placeholder="All Projects"
-            options={projects.map((p) => p.name)} />
-          <FilterSelect value={deptF} onChange={setDeptF} placeholder="All Departments"
-            options={departments.map((d) => d.name)} />
-          <FilterSelect value={statusF} onChange={setStatusF} placeholder="All Statuses"
-            options={["Completed", "In Progress", "Pending"]} />
-          <FilterSelect value={priorityF} onChange={setPriorityF} placeholder="All Priorities"
-            options={["High", "Medium", "Low"]} />
+          <FilterSelect value={projectF} onChange={setProjectF} placeholder={t("dash.allProjects")}
+            options={projects.map((p) => ({ value: p.name, label: p.name }))} />
+          <FilterSelect value={deptF} onChange={setDeptF} placeholder={t("dash.allDepartments")}
+            options={departments.map((d) => ({ value: d.name, label: d.name }))} />
+          <FilterSelect value={statusF} onChange={setStatusF} placeholder={t("tasks.allStatuses")}
+            options={["Completed", "In Progress", "Pending"].map((v) => ({ value: v, label: statusLabel(v) }))} />
+          <FilterSelect value={priorityF} onChange={setPriorityF} placeholder={t("tasks.allPriorities")}
+            options={["High", "Medium", "Low"].map((v) => ({ value: v, label: priorityLabel(v) }))} />
           <Button onClick={() => { setEditingTask(null); setFormOpen(true); }}>
-            <Plus className="h-4 w-4" /> New Task
+            <Plus className="h-4 w-4" /> {t("tasks.newTask")}
           </Button>
         </div>
       </div>
@@ -92,61 +96,61 @@ export function TaskTable({ defaultProject }: { defaultProject?: string }) {
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/50">
-              <TableHead className="whitespace-nowrap">Task ID</TableHead>
-              <TableHead>Employee</TableHead>
-              <TableHead>Department</TableHead>
-              <TableHead>Project</TableHead>
-              <TableHead className="min-w-[220px]">Description</TableHead>
-              <TableHead>Priority</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="whitespace-nowrap">Start</TableHead>
-              <TableHead className="whitespace-nowrap">Due</TableHead>
-              <TableHead className="min-w-[140px]">Completion</TableHead>
-              <TableHead className="whitespace-nowrap">Hours</TableHead>
-              <TableHead>Manager</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
+              <TableHead className="whitespace-nowrap">{t("tasks.col.id")}</TableHead>
+              <TableHead>{t("common.employee")}</TableHead>
+              <TableHead>{t("common.department")}</TableHead>
+              <TableHead>{t("common.project")}</TableHead>
+              <TableHead className="min-w-[220px]">{t("tasks.col.desc")}</TableHead>
+              <TableHead>{t("common.priority")}</TableHead>
+              <TableHead>{t("common.status")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("common.start")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("td.due")}</TableHead>
+              <TableHead className="min-w-[140px]">{t("common.completion")}</TableHead>
+              <TableHead className="whitespace-nowrap">{t("common.hours")}</TableHead>
+              <TableHead>{t("common.manager")}</TableHead>
+              <TableHead className="text-right">{t("common.actions")}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={13} className="py-10 text-center text-sm text-muted-foreground">
-                  No tasks match the current filters.
+                  {t("tasks.noMatch")}
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((t) => {
-                const overdue = isOverdue(t);
+              filtered.map((tt) => {
+                const overdue = isOverdue(tt);
                 return (
-                  <TableRow key={t.id} className={cn(overdue && "bg-destructive/5")}>
-                    <TableCell className="font-mono text-xs">{t.id}</TableCell>
-                    <TableCell className="font-medium">{t.employee}</TableCell>
-                    <TableCell>{t.department}</TableCell>
-                    <TableCell>{t.project}</TableCell>
+                  <TableRow key={tt.id} className={cn(overdue && "bg-destructive/5")}>
+                    <TableCell className="font-mono text-xs">{tt.id}</TableCell>
+                    <TableCell className="font-medium">{tt.employee}</TableCell>
+                    <TableCell>{tt.department}</TableCell>
+                    <TableCell>{tt.project}</TableCell>
                     <TableCell className="max-w-[300px]">
                       <div className="flex items-center gap-2">
-                        <span className="truncate">{t.description}</span>
+                        <span className="truncate">{tt.description}</span>
                         {overdue && <OverdueBadge />}
                       </div>
                     </TableCell>
-                    <TableCell><PriorityBadge priority={t.priority} /></TableCell>
-                    <TableCell><StatusBadge status={t.status} /></TableCell>
-                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{t.startDate}</TableCell>
+                    <TableCell><PriorityBadge priority={tt.priority} /></TableCell>
+                    <TableCell><StatusBadge status={tt.status} /></TableCell>
+                    <TableCell className="whitespace-nowrap text-xs text-muted-foreground">{tt.startDate}</TableCell>
                     <TableCell className={cn("whitespace-nowrap text-xs", overdue ? "font-semibold text-destructive" : "text-muted-foreground")}>
-                      {t.dueDate}
+                      {tt.dueDate}
                     </TableCell>
                     <TableCell>
-                      <ProgressBar value={t.completion} />
+                      <ProgressBar value={tt.completion} />
                     </TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">{t.hours}h</TableCell>
-                    <TableCell className="whitespace-nowrap text-sm">{t.manager}</TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">{tt.hours}h</TableCell>
+                    <TableCell className="whitespace-nowrap text-sm">{tt.manager}</TableCell>
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-1">
-                        <IconBtn label="View" onClick={() => setViewTask(t)}><Eye className="h-4 w-4" /></IconBtn>
-                        <IconBtn label="Edit" onClick={() => { setEditingTask(t); setFormOpen(true); }}>
+                        <IconBtn label={t("common.view")} onClick={() => setViewTask(tt)}><Eye className="h-4 w-4" /></IconBtn>
+                        <IconBtn label={t("common.edit")} onClick={() => { setEditingTask(tt); setFormOpen(true); }}>
                           <Pencil className="h-4 w-4" />
                         </IconBtn>
-                        <IconBtn label="Delete" onClick={() => setDeleteId(t.id)} destructive>
+                        <IconBtn label={t("common.delete")} onClick={() => setDeleteId(tt.id)} destructive>
                           <Trash2 className="h-4 w-4" />
                         </IconBtn>
                       </div>
@@ -165,9 +169,9 @@ export function TaskTable({ defaultProject }: { defaultProject?: string }) {
         task={viewTask}
         open={!!viewTask}
         onOpenChange={(o) => !o && setViewTask(null)}
-        onEdit={(t) => {
+        onEdit={(tt) => {
           setViewTask(null);
-          setEditingTask(t);
+          setEditingTask(tt);
           setFormOpen(true);
         }}
       />
@@ -175,13 +179,13 @@ export function TaskTable({ defaultProject }: { defaultProject?: string }) {
       <AlertDialog open={!!deleteId} onOpenChange={(o) => !o && setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete this task?</AlertDialogTitle>
-            <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+            <AlertDialogTitle>{t("tasks.deleteTitle")}</AlertDialogTitle>
+            <AlertDialogDescription>{t("tasks.deleteDesc")}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
             <AlertDialogAction onClick={() => { if (deleteId) deleteTask(deleteId); setDeleteId(null); }}>
-              Delete
+              {t("common.delete")}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -192,13 +196,13 @@ export function TaskTable({ defaultProject }: { defaultProject?: string }) {
 
 function FilterSelect({
   value, onChange, placeholder, options,
-}: { value: string; onChange: (v: string) => void; placeholder: string; options: string[] }) {
+}: { value: string; onChange: (v: string) => void; placeholder: string; options: { value: string; label: string }[] }) {
   return (
     <Select value={value} onValueChange={onChange}>
       <SelectTrigger className="w-[170px]"><SelectValue placeholder={placeholder} /></SelectTrigger>
       <SelectContent>
         <SelectItem value={ALL}>{placeholder}</SelectItem>
-        {options.map((o) => (<SelectItem key={o} value={o}>{o}</SelectItem>))}
+        {options.map((o) => (<SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>))}
       </SelectContent>
     </Select>
   );
@@ -232,14 +236,5 @@ function IconBtn({
     >
       {children}
     </button>
-  );
-}
-
-function Info({ label, value }: { label: string; value: React.ReactNode }) {
-  return (
-    <div>
-      <p className="text-xs font-medium uppercase text-muted-foreground">{label}</p>
-      <div className="mt-0.5">{value}</div>
-    </div>
   );
 }
