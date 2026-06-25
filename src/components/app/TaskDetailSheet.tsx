@@ -167,7 +167,7 @@ export function TaskDetailSheet({ task, open, onOpenChange, onEdit }: TaskDetail
                 <div className="min-w-0 flex-1">
                   <p className="text-xs font-mono text-muted-foreground">{task.id}</p>
                   <SheetTitle className="text-lg leading-tight">{task.description}</SheetTitle>
-                  <SheetDescription className="sr-only">Task details and history</SheetDescription>
+                  <SheetDescription className="sr-only">{t("td.details")}</SheetDescription>
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
                     <PriorityBadge priority={task.priority} />
                     <StatusBadge status={task.status} />
@@ -178,25 +178,24 @@ export function TaskDetailSheet({ task, open, onOpenChange, onEdit }: TaskDetail
               {onEdit && (
                 <div className="mt-3 flex justify-end">
                   <Button size="sm" variant="outline" onClick={() => onEdit(task)}>
-                    <Pencil className="h-4 w-4" /> Edit
+                    <Pencil className="h-4 w-4" /> {t("common.edit")}
                   </Button>
                 </div>
               )}
             </SheetHeader>
 
             <div className="space-y-6 p-6">
-              {/* Progress */}
               <section>
                 <h3 className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Progress
+                  {t("td.progress")}
                 </h3>
                 <ProgressBar value={task.completion} />
                 <div className="mt-3 grid grid-cols-3 gap-3 text-center">
-                  <Stat icon={Timer} label="Hours" value={`${task.hours}h`} />
-                  <Stat icon={Clock} label="Started" value={fmtDate(task.startDate)} />
+                  <Stat icon={Timer} label={t("common.hours")} value={`${task.hours}h`} />
+                  <Stat icon={Clock} label={t("td.started")} value={fmtDate(task.startDate)} />
                   <Stat
                     icon={Calendar}
-                    label="Due"
+                    label={t("td.due")}
                     value={fmtDate(task.dueDate)}
                     danger={isOverdue(task)}
                   />
@@ -205,25 +204,23 @@ export function TaskDetailSheet({ task, open, onOpenChange, onEdit }: TaskDetail
 
               <Separator />
 
-              {/* Meta */}
               <section>
                 <h3 className="mb-3 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Assignment
+                  {t("td.assignment")}
                 </h3>
                 <dl className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  <Meta icon={User} label="Employee" value={task.employee} />
-                  <Meta icon={Users} label="Manager" value={task.manager || "—"} />
-                  <Meta icon={FolderKanban} label="Project" value={task.project} />
-                  <Meta icon={Building2} label="Department" value={task.department} />
+                  <Meta icon={User} label={t("common.employee")} value={task.employee} />
+                  <Meta icon={Users} label={t("common.manager")} value={task.manager || "—"} />
+                  <Meta icon={FolderKanban} label={t("common.project")} value={task.project} />
+                  <Meta icon={Building2} label={t("common.department")} value={task.department} />
                 </dl>
               </section>
 
               <Separator />
 
-              {/* Notes */}
               <section>
                 <h3 className="mb-2 flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  <StickyNote className="h-3.5 w-3.5" /> Notes
+                  <StickyNote className="h-3.5 w-3.5" /> {t("common.notes")}
                 </h3>
                 {task.notes ? (
                   <p className="whitespace-pre-wrap rounded-lg border bg-muted/30 p-4 text-sm leading-relaxed">
@@ -231,17 +228,16 @@ export function TaskDetailSheet({ task, open, onOpenChange, onEdit }: TaskDetail
                   </p>
                 ) : (
                   <p className="rounded-lg border border-dashed bg-muted/20 p-4 text-sm text-muted-foreground">
-                    No notes have been added for this task yet.
+                    {t("td.noNotes")}
                   </p>
                 )}
               </section>
 
               <Separator />
 
-              {/* Timeline */}
               <section>
                 <h3 className="mb-4 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                  Activity Timeline
+                  {t("td.timeline")}
                 </h3>
                 <ol className="relative space-y-4 border-l border-border pl-6">
                   {buildTimeline(task).map((e, i) => (
