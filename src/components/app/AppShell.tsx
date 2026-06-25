@@ -11,11 +11,14 @@ import {
   UserCircle2,
   ShieldCheck,
   Crown,
+  Languages,
+  Check,
 } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { signOut, useSession } from "@/lib/auth";
+import { useI18n, LANGUAGES, type TKey } from "@/lib/i18n";
 import { Badge } from "@/components/ui/badge";
 import {
   DropdownMenu,
@@ -26,15 +29,15 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-type NavItem = { to: string; label: string; icon: typeof LayoutDashboard; adminOnly?: boolean };
+type NavItem = { to: string; tKey: TKey; icon: typeof LayoutDashboard; adminOnly?: boolean };
 
 const nav: NavItem[] = [
-  { to: "/", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/tasks", label: "Tasks", icon: ListChecks },
-  { to: "/projects", label: "Projects", icon: FolderKanban },
-  { to: "/departments", label: "Departments", icon: Building2 },
-  { to: "/employees", label: "Employees", icon: Users },
-  { to: "/users", label: "Users", icon: ShieldCheck, adminOnly: true },
+  { to: "/", tKey: "nav.dashboard", icon: LayoutDashboard },
+  { to: "/tasks", tKey: "nav.tasks", icon: ListChecks },
+  { to: "/projects", tKey: "nav.projects", icon: FolderKanban },
+  { to: "/departments", tKey: "nav.departments", icon: Building2 },
+  { to: "/employees", tKey: "nav.employees", icon: Users },
+  { to: "/users", tKey: "nav.users", icon: ShieldCheck, adminOnly: true },
 ];
 
 export function AppShell({ children }: { children: ReactNode }) {
