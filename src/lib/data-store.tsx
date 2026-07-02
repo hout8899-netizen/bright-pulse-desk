@@ -44,7 +44,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [tasks, setTasks] = useState<Task[]>(initialTasks);
   const [projects, setProjects] = useState<Project[]>(initialProjects);
   const [departments, setDepartments] = useState<Department[]>(initialDepartments);
-  const [employees] = useState<Employee[]>(initialEmployees);
+  const [employees, setEmployees] = useState<Employee[]>(initialEmployees);
 
   const value = useMemo<DataContextValue>(
     () => ({
@@ -112,6 +112,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
       updateDepartment: (id, patch) =>
         setDepartments((prev) => prev.map((d) => (d.id === id ? { ...d, ...patch } : d))),
       deleteDepartment: (id) => setDepartments((prev) => prev.filter((d) => d.id !== id)),
+      addEmployee: (e) => setEmployees((prev) => [...prev, { ...e, id: nextId("E", prev) }]),
+      updateEmployee: (id, patch) =>
+        setEmployees((prev) => prev.map((e) => (e.id === id ? { ...e, ...patch } : e))),
+      deleteEmployee: (id) => setEmployees((prev) => prev.filter((e) => e.id !== id)),
     }),
     [tasks, projects, departments, employees],
   );
